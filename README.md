@@ -62,8 +62,39 @@ Mở trình duyệt và truy cập địa chỉ: `http://127.0.0.1:5000`
 ---
 
 ## 📁 Cấu trúc thư mục
-* `/models`: Định nghĩa lớp Movie, Director.
+* `/models`: Định nghĩa lớp Movie, Director (OOP).
 * `/repositories`: Lớp tương tác trực tiếp với Database SQLite.
 * `/services`: Lớp xử lý logic nghiệp vụ, crawler, phân tích và I/O.
 * `/ui`: Chứa logic Flask (app.py) và các giao diện HTML (templates).
 * `main.py`: File khởi chạy toàn bộ hệ thống.
+
+---
+
+## 🛠 Duy trì mã nguồn (Git Workflow)
+
+Mỗi khi bạn thực hiện thay đổi mã nguồn (sửa code, thêm tính năng), hãy làm theo 3 bước sau để cập nhật lên GitHub:
+
+### Bước 1: Chuẩn bị các thay đổi
+Lệnh này sẽ đánh dấu tất cả các file bạn đã sửa để chuẩn bị lưu:
+```bash
+git add .
+```
+
+### Bước 2: Lưu lại phiên bản (Commit)
+Lệnh này giúp bạn khóa lại phiên bản kèm theo một lời ghi chú ngắn gọn về những gì bạn đã làm:
+```bash
+git commit -m "Mô tả ngắn gọn thay đổi của bạn"
+```
+
+### Bước 3: Đẩy lên GitHub
+Lệnh này sẽ gửi toàn bộ bản lưu từ máy tính của bạn lên kho lưu trữ trên GitHub:
+```bash
+git push
+```
+
+### 💡 Mẹo nhỏ:
+*   **Kiểm tra trạng thái**: Trước khi commit, bạn có thể dùng lệnh `git status` để xem mình đã sửa những file nào.
+*   **Xem lịch sử**: Dùng lệnh `git log --oneline` để xem danh sách các lần bạn đã commit trong quá khứ.
+
+---
+*Dự án được hoàn thiện với sự hỗ trợ của Antigravity AI.*
