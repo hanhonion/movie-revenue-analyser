@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Chỉnh sửa thông tin Đạo diễn</h2>
+    <form action="/directors/edit/{{ director.id }}" method="POST">
+        <div style="display: grid; gap: 15px;">
+            <div>
+                <label>Tên đạo diễn:</label>
+                <input type="text" name="name" value="{{ director.name }}" required style="width: 100%; padding: 10px;">
+            </div>
+            <div>
+                <label>Năm sinh:</label>
+                <input type="number" name="birth_year" value="{{ director.birth_year }}" style="width: 100%; padding: 10px;">
+            </div>
+            <div style="margin-top: 10px;">
+                <button type="submit" class="btn btn-success">Cập nhật</button>
+                <a href="/directors" class="btn" style="background: #ccc; color: black; margin-left: 10px;">Hủy bỏ</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

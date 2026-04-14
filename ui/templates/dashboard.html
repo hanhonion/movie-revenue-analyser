@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Dashboard Doanh thu Phim</h2>
+    <div class="dashboard-stats">
+        <div class="stat-item">
+            <h3>Tổng số phim</h3>
+            <p style="font-size: 2rem; font-weight: bold;">{{ stats.count }}</p>
+        </div>
+        <div class="stat-item">
+            <h3>Tổng doanh thu ($)</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">${{ stats.total_revenue | format_currency }}</p>
+        </div>
+        <div class="stat-item">
+            <h3>Doanh thu Trung bình</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">${{ stats.avg_revenue | format_currency }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Top 5 Phim theo Doanh thu</h3>
+    <table>
+        <tr>
+            <th>Tiêu đề phim</th>
+            <th>Năm</th>
+            <th>Doanh thu ($)</th>
+        </tr>
+        {% for m in stats.top_movies %}
+        <tr>
+            <td>{{ m.title }}</td>
+            <td>{{ m.year }}</td>
+            <td style="color: #28a745; font-weight: bold;">${{ m.revenue | format_currency }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% if chart %}
+<div class="card" style="text-align: center;">
+    <h3>📊 Biểu đồ Phân tích Doanh thu (Wikipedia)</h3>
+    <img src="data:image/png;base64,{{ chart }}" alt="Revenue Chart" style="max-width: 100%; border-radius: 8px; border: 1px solid #ddd;">
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Công cụ dữ liệu</h3>
+    <form action="/crawl" method="POST" style="display:inline;">
+        <button type="submit" class="btn btn-primary">🌐 Chạy Crawler Wikipedia (Phim & Đạo diễn)</button>
+    </form>
+    
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+    
+    <h4>📥 Nhập dữ liệu từ file (CSV/JSON)</h4>
+    <form action="/import" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+        <input type="file" name="file" accept=".csv, .json" required style="padding: 5px;">
+        <button type="submit" class="btn btn-primary" style="background: #28a745; border-color: #28a745;">Tải lên & Nhập</button>
+    </form>
+
+    <div style="margin-top: 15px;">
+        <a href="/export/csv" class="btn btn-success">📥 Xuất báo cáo CSV</a>
+        <a href="/export/json" class="btn" style="background: #6f42c1; color: white; margin-left: 10px;">📥 Xuất báo cáo JSON</a>
+    </div>
+    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;"><i>* Quá trình cào dữ liệu sẽ truy cập vào từng phim để lấy tên đạo diễn, có thể mất vài giây.</i></p>
+</div>
+{% endblock %}

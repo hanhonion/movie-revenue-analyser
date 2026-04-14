@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Quản lý Danh sách Phim</h2>
+    <form action="/movies/add" method="POST">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 2fr 2fr auto; gap: 10px; align-items: end;">
+            <div>
+                <label>Tên phim:</label>
+                <input type="text" name="title" placeholder="Tên phim" required style="width: 100%; padding: 8px;">
+            </div>
+            <div>
+                <label>Năm:</label>
+                <input type="number" name="year" placeholder="Năm" required style="width: 100%; padding: 8px;">
+            </div>
+            <div>
+                <label>Doanh thu ($):</label>
+                <input type="number" step="1" name="revenue" placeholder="Doanh thu ($)" required style="width: 100%; padding: 8px;">
+            </div>
+            <div>
+                <label>Đạo diễn:</label>
+                <select name="director_id" style="width: 100%; padding: 8px;">
+                    {% for d in directors %}
+                    <option value="{{ d.id }}">{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Thêm</button>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="background: #f8f9fa;">
+    <h3>📥 Nhập dữ liệu từ file (CSV/JSON)</h3>
+    <form action="/import" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center;">
+        <input type="file" name="file" accept=".csv, .json" required style="padding: 5px;">
+        <button type="submit" class="btn btn-primary">Tải lên & Nhập</button>
+    </form>
+    <p style="font-size: 0.85rem; color: #666; margin-top: 5px;"><i>* Hỗ trợ file .csv (Cột: Tiêu đề, Năm, Doanh thu) hoặc .json</i></p>
+</div>
+
+<div class="card">
+    <h3>🔍 Tìm kiếm & Lọc nâng cao</h3>
+    <form action="/movies" method="GET" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <input type="text" name="search" placeholder="Tìm theo tên phim..." value="{{ request.args.get('search', '') }}" style="padding: 10px; flex: 1; border-radius: 4px; border: 1px solid #ddd;">
+        
+        <select name="director_id" style="padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+            <option value="">-- Tất cả Đạo diễn --</option>
+            {% for d in directors %}
+            <option value="{{ d.id }}" {% if request.args.get('director_id')|int == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="sort" style="padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+            <option value="">Sắp xếp mặc định</option>
+            <option value="revenue_desc" {% if request.args.get('sort') == 'revenue_desc' %}selected{% endif %}>Doanh thu cao nhất</option>
+            <option value="year_desc" {% if request.args.get('sort') == 'year_desc' %}selected{% endif %}>Mới nhất</option>
+            <option value="title_asc" {% if request.args.get('sort') == 'title_asc' %}selected{% endif %}>Tên phim (A-Z)</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Áp dụng</button>
+        <a href="/movies" class="btn" style="background: #eee; color: #333; text-decoration: none;">Xóa lọc</a>
+    </form>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Dữ liệu Phim đã lưu</h3>
+        <p style="color: #666;">Hiển thị: <b>{{ movies|length }}</b> phim</p>
+    </div>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Tiêu đề phim</th>
+            <th>Năm</th>
+            <th>Doanh thu ($)</th>
+            <th>Hành động</th>
+        </tr>
+        {% for m in movies %}
+        <tr>
+            <td>{{ m.id }}</td>
+            <td style="font-weight: bold;">{{ m.title }}</td>
+            <td>{{ m.year }}</td>
+            <td style="color: #28a745; font-weight: bold;">${{ m.revenue | format_currency }}</td>
+            <td>
+                <a href="/movies/edit/{{ m.id }}" class="btn btn-primary" style="padding: 5px 12px; margin-right: 5px;">Sửa</a>
+                <form action="/movies/delete/{{ m.id }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger" style="padding: 5px 12px;" onclick="return confirm('Xóa?')">Xóa</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div style="margin-top: 20px;">
+        <a href="/export/csv" class="btn btn-success">📥 Xuất CSV</a>
+        <a href="/export/json" class="btn" style="background: #6f42c1; color: white; margin-left: 10px;">📥 Xuất JSON</a>
+    </div>
+</div>
+{% endblock %}

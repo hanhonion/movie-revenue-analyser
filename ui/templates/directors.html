@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Quản lý Đạo diễn</h2>
+    <form action="/directors/add" method="POST">
+        <input type="text" name="name" placeholder="Tên đạo diễn" required>
+        <input type="number" name="birth_year" placeholder="Năm sinh">
+        <button type="submit" class="btn btn-primary">Thêm</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>🔍 Tìm kiếm Đạo diễn</h3>
+    <form action="/directors" method="GET" style="display: flex; gap: 10px;">
+        <input type="text" name="search" placeholder="Nhập tên đạo diễn..." value="{{ request.args.get('search', '') }}" style="padding: 10px; flex: 1; border-radius: 4px; border: 1px solid #ddd;">
+        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        {% if request.args.get('search') %}
+            <a href="/directors" class="btn" style="background: #eee; color: #333; text-decoration: none; padding: 10px 15px;">Xóa lọc</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <h3>Danh sách đạo diễn</h3>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Tên</th>
+            <th>Năm sinh</th>
+            <th>Hành động</th>
+        </tr>
+        {% for d in directors %}
+        <tr>
+            <td>{{ d.id }}</td>
+            <td style="font-weight: bold;">{{ d.name }}</td>
+            <td>{{ d.birth_year if d.birth_year else "(Chưa cập nhật)" }}</td>
+            <td>
+                <a href="/directors/edit/{{ d.id }}" class="btn btn-primary" style="padding: 5px 12px; margin-right: 5px;">Sửa</a>
+                <form action="/directors/delete/{{ d.id }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger" style="padding: 5px 12px;" onclick="return confirm('Xóa đạo diễn này?')">Xóa</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
