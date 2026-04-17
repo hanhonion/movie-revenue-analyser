@@ -8,7 +8,7 @@ from repositories.database import init_db
 from ui.app import app
 
 if __name__ == "__main__":
-    print("--- KHỞI KHỞI CHẠY DỰ ÁN IMDb ANALYSER ---")
+    print("--- KHỞI CHẠY DỰ ÁN IMDb ANALYSER ---")
     
     # 1. Khởi tạo Database (Tạo bảng nếu chưa có)
     print("Đang khởi tạo cơ sở dữ liệu...")
