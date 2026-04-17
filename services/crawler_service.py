@@ -132,13 +132,42 @@ class CrawlerService:
             return self.seed_initial_data()
 
     def seed_initial_data(self):
+        """Thêm dữ liệu mẫu khi không thể cào từ Wikipedia (fallback)."""
         sample_movies = [
             ("Avatar", 2009, 2923706026.0, "James Cameron", 1954),
             ("Avengers: Endgame", 2019, 2797501328.0, "Anthony Russo", 1970),
-            ("Titanic", 1997, 2257844554.0, "James Cameron", 1954)
+            ("Titanic", 1997, 2257844554.0, "James Cameron", 1954),
+            ("Star Wars: The Force Awakens", 2015, 2068223624.0, "J.J. Abrams", 1966),
+            ("Avengers: Infinity War", 2018, 2048359754.0, "Anthony Russo", 1970),
+            ("Spider-Man: No Way Home", 2021, 1921847111.0, "Jon Watts", 1981),
+            ("Jurassic World", 2015, 1671713208.0, "Colin Trevorrow", 1976),
+            ("The Lion King", 2019, 1663075401.0, "Jon Favreau", 1966),
+            ("The Avengers", 2012, 1518812988.0, "Joss Whedon", 1964),
+            ("Furious 7", 2015, 1515341399.0, "James Wan", 1977),
         ]
+        print("Crawler thất bại. Đang nạp dữ liệu mẫu...")
         count = 0
         for title, year, rev, d_name, d_year in sample_movies:
-            # Logic check existing and add...
-            pass
+            try:
+                # Tìm hoặc tạo đạo diễn (tránh trùng lặp)
+                directors = self.director_service.get_all_directors()
+                target_dir = next((d for d in directors if d.name == d_name), None)
+                if not target_dir:
+                    target_dir = self.director_service.add_director(
+                        Director(name=d_name, birth_year=d_year)
+                    )
+
+                # Thêm phim (MovieService.add_movie sẽ tự validate và chống trùng)
+                self.movie_service.add_movie(
+                    Movie(title=title, year=year, revenue=rev, director_id=target_dir.id)
+                )
+                count += 1
+                print(f"  ✓ Đã thêm: {title} ({year})")
+            except ValueError as e:
+                # Bỏ qua nếu phim đã tồn tại (chạy seed lần 2)
+                print(f"  - Bỏ qua '{title}': {e}")
+            except Exception as e:
+                print(f"  - Lỗi khi thêm '{title}': {e}")
+
+        print(f"Hoàn tất seed: đã thêm {count} bản ghi mới.")
         return count
