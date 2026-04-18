@@ -6,7 +6,6 @@ from models.movie import Movie
 from models.director import Director
 from services.movie_service import MovieService
 from services.director_service import DirectorService
-
 class CrawlerService:
     def __init__(self):
         self.movie_service = MovieService()
@@ -15,7 +14,6 @@ class CrawlerService:
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
         }
-
     def _get_director_birth_year(self, director_url):
         """Truy cập trang cá nhân của đạo diễn để lấy năm sinh"""
         if not director_url: return None
@@ -28,7 +26,6 @@ class CrawlerService:
             if bday:
                 year_match = re.search(r'\d{4}', bday.text)
                 if year_match: return int(year_match.group())
-            
             # Nếu không có thẻ bday, tìm trong bảng Infobox
             infobox = soup.find('table', {'class': 'infobox'})
             if infobox:
@@ -42,7 +39,6 @@ class CrawlerService:
             return None
         except Exception:
             return None
-
     def _get_director_info_from_movie_page(self, movie_url):
         """Lấy tên và URL của Đạo diễn từ trang phim"""
         try:
@@ -51,7 +47,6 @@ class CrawlerService:
             soup = BeautifulSoup(res.text, 'html.parser')
             infobox = soup.find('table', {'class': 'infobox'})
             if not infobox: return "Unknown Director", None
-            
             for tr in infobox.find_all('tr'):
                 th = tr.find('th')
                 if th and "Directed by" in th.text:
@@ -64,7 +59,6 @@ class CrawlerService:
             return "Unknown Director", None
         except Exception:
             return "Unknown Director", None
-
     def crawl_movies(self, limit=50):
         url = "https://en.wikipedia.org/wiki/List_of_highest-grossing_films"
         count = 0
@@ -72,32 +66,24 @@ class CrawlerService:
             response = requests.get(url, headers=self.headers, timeout=15)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
-            
             table = soup.find('table', {'class': 'wikitable'})
             if not table: return self.seed_initial_data()
-
-            rows = table.find_all('tr')[1:] 
-            
+            rows = table.find_all('tr')[1:]
             for row in rows[:limit+10]: 
                 if count >= limit: break
                 try:
                     cols = row.find_all(['td', 'th'])
                     if len(cols) < 5: continue
-                    
                     title_cell = cols[2]
                     title_link = title_cell.find('a')
                     title = title_link.text.strip() if title_link else title_cell.text.strip()
                     title = re.sub(r'[†\*]|\s*\[.*\]', '', title).strip()
-                    
                     movie_url = title_link.get('href') if title_link else None
-                    
                     gross_text = cols[3].text.strip()
                     gross_match = re.search(r'\$[\d,]+', gross_text)
                     revenue = float(gross_match.group().replace('$', '').replace(',', '')) if gross_match else 0.0
-                        
                     year_match = re.search(r'\d{4}', cols[4].text.strip())
                     year = int(year_match.group()) if year_match else 2024
-                    
                     # QUY TRÌNH MỚI: Lấy cả thông tin năm sinh đạo diễn
                     director_name = "Unknown"
                     birth_year = None
@@ -108,7 +94,6 @@ class CrawlerService:
                             print(f"  -> Đang tìm năm sinh đạo diễn {director_name}...")
                             birth_year = self._get_director_birth_year(director_url)
                             time.sleep(0.3) 
-                    
                     # Lưu Đạo diễn và Năm sinh
                     directors = self.director_service.get_all_directors()
                     target_dir = next((d for d in directors if d.name == director_name), None)
@@ -118,27 +103,50 @@ class CrawlerService:
                         # Cập nhật năm sinh nếu trước đó chưa có
                         target_dir.birth_year = birth_year
                         self.director_service.repo.update(target_dir)
-                    
                     self.movie_service.add_movie(Movie(title=title, year=year, revenue=revenue, director_id=target_dir.id))
                     count += 1
                 except Exception as e:
                     print(f"Bỏ qua dòng lỗi: {e}")
                     continue
-            
             return count if count > 0 else self.seed_initial_data()
-
         except Exception as e:
             print(f"Lỗi Wikipedia: {e}")
             return self.seed_initial_data()
-
     def seed_initial_data(self):
+        """Thêm dữ liệu mẫu khi không thể cào từ Wikipedia (fallback)."""
         sample_movies = [
             ("Avatar", 2009, 2923706026.0, "James Cameron", 1954),
             ("Avengers: Endgame", 2019, 2797501328.0, "Anthony Russo", 1970),
-            ("Titanic", 1997, 2257844554.0, "James Cameron", 1954)
+            ("Titanic", 1997, 2257844554.0, "James Cameron", 1954),
+            ("Star Wars: The Force Awakens", 2015, 2068223624.0, "J.J. Abrams", 1966),
+            ("Avengers: Infinity War", 2018, 2048359754.0, "Anthony Russo", 1970),
+            ("Spider-Man: No Way Home", 2021, 1921847111.0, "Jon Watts", 1981),
+            ("Jurassic World", 2015, 1671713208.0, "Colin Trevorrow", 1976),
+            ("The Lion King", 2019, 1663075401.0, "Jon Favreau", 1966),
+            ("The Avengers", 2012, 1518812988.0, "Joss Whedon", 1964),
+            ("Furious 7", 2015, 1515341399.0, "James Wan", 1977),
         ]
+        print("Crawler thất bại. Đang nạp dữ liệu mẫu...")
         count = 0
         for title, year, rev, d_name, d_year in sample_movies:
-            # Logic check existing and add...
-            pass
+            try:
+                # Tìm hoặc tạo đạo diễn (tránh trùng lặp)
+                directors = self.director_service.get_all_directors()
+                target_dir = next((d for d in directors if d.name == d_name), None)
+                if not target_dir:
+                    target_dir = self.director_service.add_director(
+                        Director(name=d_name, birth_year=d_year)
+                    )
+                # Thêm phim (MovieService.add_movie sẽ tự validate và chống trùng)
+                self.movie_service.add_movie(
+                    Movie(title=title, year=year, revenue=rev, director_id=target_dir.id)
+                )
+                count += 1
+                print(f"  ✓ Đã thêm: {title} ({year})")
+            except ValueError as e:
+                # Bỏ qua nếu phim đã tồn tại (chạy seed lần 2)
+                print(f"  - Bỏ qua '{title}': {e}")
+            except Exception as e:
+                print(f"  - Lỗi khi thêm '{title}': {e}")
+        print(f"Hoàn tất seed: đã thêm {count} bản ghi mới.")
         return count
